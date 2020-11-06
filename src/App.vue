@@ -104,19 +104,16 @@
                 <p>{{ timer }}</p>
                 <p>{{ duration }}</p>
               </div>
-              <div class="mt-1">
-                <div
-                  class="h-1 bg-gray-900 rounded-full"
-                  @click="moveTo($event)"
-                >
+              <div class="py-2 group" @click="moveTo($event)">
+                <div class="h-2 bg-gray-500 rounded-full relative">
                   <div
-                    class="h-1 bg-red-700 rounded-full relative"
+                    class="h-2 bg-black group-hover:bg-red-700 rounded-full"
                     :style="{ width: `${progress}%` }"
-                  >
-                    <span
-                      class="-mt-2 absolute bg-red-700 h-5 right-0 rounded-full shadow top-0 w-5"
-                    ></span>
-                  </div>
+                  ></div>
+                  <span
+                    class="-mt-2 -translate-x-1/2 -translate-y-1 absolute bg-red-700 group-hover:block hidden h-5 left-0 rounded-full shadow top-0 transform w-5"
+                    :style="{ left: `${progress}%` }"
+                  ></span>
                 </div>
               </div>
             </div>
@@ -126,6 +123,12 @@
     </div>
   </div>
 </template>
+
+<style>
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+</style>
 
 <script>
 import { Howl } from "howler";
@@ -185,13 +188,11 @@ export default {
       // progress bar point half width
       const element = event.currentTarget;
 
-      const pointerWidth = 10;
       const mouseXPosition = event.pageX;
       const progressDOMPosition = element.getBoundingClientRect().left;
       const progressWidth = element.offsetWidth;
 
-      const percent =
-        (mouseXPosition - progressDOMPosition + pointerWidth) / progressWidth;
+      const percent = (mouseXPosition - progressDOMPosition) / progressWidth;
 
       this.sound.seek(this.sound.duration() * percent);
 
