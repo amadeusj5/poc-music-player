@@ -61,8 +61,8 @@
                       <path d="M4 5h3v10H4V5zm12 0v10l-9-5 9-5z" />
                     </svg>
                   </div>
-                  <div
-                    class="cursor-pointer text-white p-8 rounded-full bg-red-700 shadow-lg"
+                  <button
+                    class="text-white p-8 rounded-full bg-red-700 shadow-lg focus:outline-none"
                     @click="toggleSong"
                   >
                     <svg
@@ -73,7 +73,7 @@
                     >
                       <path d="M5 4h3v12H5V4zm7 0h3v12h-3V4z" />
                     </svg>
-                  </div>
+                  </button>
                   <div class="text-grey-darker">
                     <svg
                       class="w-8 h-8"
@@ -104,16 +104,27 @@
                 <p>{{ timer }}</p>
                 <p>{{ duration }}</p>
               </div>
-              <div class="py-2 group" @click="moveTo($event)">
+              <div
+                ref="progress-content"
+                class="py-2 group"
+                @click="moveTo"
+                @mousedown="startDragging"
+              >
                 <div class="h-2 bg-gray-500 rounded-full relative">
                   <div
-                    class="h-2 bg-black group-hover:bg-red-700 rounded-full"
+                    :class="[
+                      'h-2 bg-black group-hover:bg-red-700 rounded-full',
+                      { 'bg-red-700': isDragging }
+                    ]"
                     :style="{ width: `${progress}%` }"
                   ></div>
-                  <span
-                    class="-mt-2 -translate-x-1/2 -translate-y-1 absolute bg-red-700 group-hover:block hidden h-5 left-0 rounded-full shadow top-0 transform w-5"
+                  <button
+                    :class="[
+                      '-mt-2 -translate-x-1/2 -translate-y-1 absolute bg-red-700 focus:outline-none focus:block group-hover:block h-5 left-0 rounded-full shadow top-0 transform w-5',
+                      isDragging ? 'block' : 'hidden'
+                    ]"
                     :style="{ left: `${progress}%` }"
-                  ></span>
+                  ></button>
                 </div>
               </div>
             </div>
@@ -139,7 +150,8 @@ export default {
     return {
       sound: null,
       timer: "0:00",
-      progress: 0
+      progress: 0,
+      isDragging: false
     };
   },
   computed: {
@@ -156,7 +168,8 @@ export default {
       src: ["/mp3/yann_tiersen.mp3"],
       onplay: () => {
         requestAnimationFrame(this.step);
-      }
+      },
+      volume: this.currentVolume
     });
   },
   methods: {
@@ -168,37 +181,75 @@ export default {
 
       this.sound.pause();
     },
-    formatTime: function(secs) {
+    formatTime(secs) {
       var minutes = Math.floor(secs / 60) || 0;
       var seconds = secs - minutes * 60 || 0;
 
       return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
     },
     step() {
-      var seek = this.sound.seek() || 0;
+      let seek = this.sound.seek() || 0;
       this.timer = this.formatTime(Math.round(seek));
-      this.progress = (seek / this.sound.duration()) * 100 || 0;
+
+      if (!this.isDragging) {
+        this.progress = (seek / this.sound.duration()) * 100 || 0;
+      }
 
       // If the sound is still playing, continue stepping.
       if (this.sound.playing()) {
         requestAnimationFrame(this.step);
       }
     },
-    moveTo(event) {
+    moveTo(event, el = null) {
       // progress bar point half width
-      const element = event.currentTarget;
+      let element = event.currentTarget;
+
+      if (el) {
+        element = el;
+      }
 
       const mouseXPosition = event.pageX;
       const progressDOMPosition = element.getBoundingClientRect().left;
       const progressWidth = element.offsetWidth;
 
       const percent = (mouseXPosition - progressDOMPosition) / progressWidth;
+      const newDuration = this.sound.duration() * percent;
 
-      this.sound.seek(this.sound.duration() * percent);
+      if (newDuration < 0 || newDuration > this.sound.duration()) {
+        return;
+      }
+
+      if (!this.isDragging) {
+        this.sound.seek(newDuration);
+      } else {
+        this.progress = (newDuration / this.sound.duration()) * 100 || 0;
+      }
 
       if (!this.sound.playing()) {
         this.step();
       }
+    },
+    startDragging(event) {
+      this.isDragging = true;
+
+      this.moveTo(event);
+
+      document.querySelector("body").classList.add("select-none");
+
+      window.addEventListener("mousemove", this.draggPointer, true);
+      window.addEventListener("mouseup", this.stopDragging, true);
+    },
+    draggPointer(event) {
+      this.moveTo(event, this.$refs["progress-content"]);
+    },
+    stopDragging() {
+      this.isDragging = false;
+      this.moveTo(event, this.$refs["progress-content"]);
+
+      document.querySelector("body").classList.remove("select-none");
+
+      window.removeEventListener("mousemove", this.draggPointer, true);
+      window.removeEventListener("mouseup", this.stopDragging, true);
     }
   }
 };
