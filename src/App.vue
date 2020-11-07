@@ -189,16 +189,19 @@ export default {
     },
     step() {
       let seek = this.sound.seek() || 0;
-      this.timer = this.formatTime(Math.round(seek));
 
       if (!this.isDragging) {
-        this.progress = (seek / this.sound.duration()) * 100 || 0;
+        this.updateTimerProgress(seek);
       }
 
       // If the sound is still playing, continue stepping.
       if (this.sound.playing()) {
         requestAnimationFrame(this.step);
       }
+    },
+    updateTimerProgress(percent) {
+      this.timer = this.formatTime(Math.round(percent));
+      this.progress = (percent / this.sound.duration()) * 100 || 0;
     },
     moveTo(event, el = null) {
       // progress bar point half width
@@ -222,7 +225,9 @@ export default {
       if (!this.isDragging) {
         this.sound.seek(newDuration);
       } else {
-        this.progress = (newDuration / this.sound.duration()) * 100 || 0;
+        window.requestAnimationFrame(() =>
+          this.updateTimerProgress(newDuration)
+        );
       }
 
       if (!this.sound.playing()) {
