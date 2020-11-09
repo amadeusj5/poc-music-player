@@ -254,6 +254,16 @@ export default {
             }
           ]
         });
+
+        navigator.mediaSession.setActionHandler("play", () => {
+          this.toggleSong();
+        });
+        navigator.mediaSession.setActionHandler("pause", () => {
+          this.toggleSong();
+        });
+        navigator.mediaSession.setActionHandler("stop", () => {
+          this.sound.stop();
+        });
       }
     },
     toggleSong() {
