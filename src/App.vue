@@ -196,6 +196,8 @@ export default {
     }
   },
   created() {
+    this.setMediaSession();
+
     this.sound = new Howl({
       src: ["/mp3/yann_tiersen.mp3"],
       html5: true,
@@ -206,6 +208,54 @@ export default {
     });
   },
   methods: {
+    setMediaSession() {
+      if ("mediaSession" in navigator) {
+        // eslint-disable-next-line no-undef
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: "Comptine d'un autre été, l'après-midi",
+          artist: "Yann Tiersen",
+          album: "Amelie from Montmartre (Original SoundTrack)",
+          artwork: [
+            {
+              src:
+                "https://e-cdns-images.dzcdn.net/images/cover/5cebbe7de2511f54bc24e73becbb3f71/264x264-000000-80-0-0.jpg",
+              sizes: "96x96",
+              type: "image/png"
+            },
+            {
+              src:
+                "https://e-cdns-images.dzcdn.net/images/cover/5cebbe7de2511f54bc24e73becbb3f71/264x264-000000-80-0-0.jpg",
+              sizes: "128x128",
+              type: "image/png"
+            },
+            {
+              src:
+                "https://e-cdns-images.dzcdn.net/images/cover/5cebbe7de2511f54bc24e73becbb3f71/264x264-000000-80-0-0.jpg",
+              sizes: "192x192",
+              type: "image/png"
+            },
+            {
+              src:
+                "https://e-cdns-images.dzcdn.net/images/cover/5cebbe7de2511f54bc24e73becbb3f71/264x264-000000-80-0-0.jpg",
+              sizes: "256x256",
+              type: "image/png"
+            },
+            {
+              src:
+                "https://e-cdns-images.dzcdn.net/images/cover/5cebbe7de2511f54bc24e73becbb3f71/264x264-000000-80-0-0.jpg",
+              sizes: "384x384",
+              type: "image/png"
+            },
+            {
+              src:
+                "https://e-cdns-images.dzcdn.net/images/cover/5cebbe7de2511f54bc24e73becbb3f71/264x264-000000-80-0-0.jpg",
+              sizes: "512x512",
+              type: "image/png"
+            }
+          ]
+        });
+      }
+    },
     toggleSong() {
       if (!this.sound.playing()) {
         this.sound.play();
