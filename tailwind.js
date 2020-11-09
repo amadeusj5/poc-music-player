@@ -9,6 +9,11 @@ module.exports = {
       spacing: {
         2: "0.3rem"
       }
+    },
+    inset: {
+      "0": 0,
+      auto: "auto",
+      "1/2": "50%"
     }
   },
   variants: {

@@ -99,32 +99,62 @@
                 </div>
               </div>
             </div>
-            <div class="mx-8 py-4">
-              <div class="flex justify-between text-sm text-grey-darker">
-                <p>{{ timer }}</p>
-                <p>{{ duration }}</p>
+            <div class="flex justify-between items-center">
+              <div class="mx-5 py-4 w-8/12">
+                <div class="flex justify-between text-sm text-grey-darker mb-1">
+                  <p>{{ timer }}</p>
+                  <p>{{ duration }}</p>
+                </div>
+                <div
+                  ref="progress-content"
+                  class="py-2 group"
+                  @click="moveTo"
+                  @mousedown="startDragging"
+                >
+                  <div class="h-2 bg-gray-500 rounded-full relative">
+                    <div
+                      :class="[
+                        'h-2 bg-black group-hover:bg-red-700 rounded-full',
+                        { 'bg-red-700': isDragging }
+                      ]"
+                      :style="{ width: `${progress}%` }"
+                    ></div>
+                    <button
+                      :class="[
+                        '-translate-x-1/2 -translate-y-1/2 absolute bg-red-700 focus:outline-none focus:block group-hover:block h-4 left-0 rounded-full shadow top-1/2 transform w-4',
+                        isDragging ? 'block' : 'hidden'
+                      ]"
+                      :style="{ left: `${progress}%` }"
+                    ></button>
+                  </div>
+                </div>
               </div>
-              <div
-                ref="progress-content"
-                class="py-2 group"
-                @click="moveTo"
-                @mousedown="startDragging"
-              >
-                <div class="h-2 bg-gray-500 rounded-full relative">
-                  <div
-                    :class="[
-                      'h-2 bg-black group-hover:bg-red-700 rounded-full',
-                      { 'bg-red-700': isDragging }
-                    ]"
-                    :style="{ width: `${progress}%` }"
-                  ></div>
-                  <button
-                    :class="[
-                      '-mt-2 -translate-x-1/2 -translate-y-1 absolute bg-red-700 focus:outline-none focus:block group-hover:block h-5 left-0 rounded-full shadow top-0 transform w-5',
-                      isDragging ? 'block' : 'hidden'
-                    ]"
-                    :style="{ left: `${progress}%` }"
-                  ></button>
+              <div class="mx-5 flex-1">
+                <div class="text-sm text-grey-darker mb-1">
+                  <p>Volume</p>
+                </div>
+                <div
+                  ref="volume-content"
+                  class="py-2 group"
+                  @click="moveVolume"
+                  @mousedown="startDraggingVolume"
+                >
+                  <div class="h-2 bg-gray-500 rounded-full relative">
+                    <div
+                      :class="[
+                        'h-2 bg-black group-hover:bg-red-700 rounded-full',
+                        { 'bg-red-700': isDraggingVolume }
+                      ]"
+                      :style="{ width: `${volume * 100}%` }"
+                    ></div>
+                    <button
+                      :class="[
+                        '-translate-x-1/2 -translate-y-1/2 absolute bg-red-700 focus:outline-none focus:block group-hover:block h-4 left-0 rounded-full shadow top-1/2 transform w-4',
+                        isDraggingVolume ? 'block' : 'hidden'
+                      ]"
+                      :style="{ left: `${volume * 100}%` }"
+                    ></button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -151,13 +181,15 @@ export default {
       sound: null,
       timer: "0:00",
       progress: 0,
-      isDragging: false
+      isDragging: false,
+      volume: 1,
+      isDraggingVolume: false
     };
   },
   computed: {
     duration() {
       if (!this.sound) {
-        return 0;
+        return "0:00";
       }
 
       return this.formatTime(Math.round(this.sound.duration()));
@@ -166,10 +198,11 @@ export default {
   created() {
     this.sound = new Howl({
       src: ["/mp3/yann_tiersen.mp3"],
+      html5: true,
       onplay: () => {
         requestAnimationFrame(this.step);
       },
-      volume: this.currentVolume
+      volume: this.volume
     });
   },
   methods: {
@@ -234,6 +267,26 @@ export default {
         this.step();
       }
     },
+    moveVolume(event, el = null) {
+      let element = event.currentTarget;
+
+      if (el) {
+        element = el;
+      }
+
+      const mouseXPosition = event.pageX;
+      const progressDOMPosition = element.getBoundingClientRect().left;
+      const volumeWidth = element.offsetWidth;
+
+      const level = (mouseXPosition - progressDOMPosition) / volumeWidth;
+      console.log(level);
+      if (level < 0 || level > 1) {
+        return;
+      }
+
+      this.volume = level;
+      this.sound.volume(level);
+    },
     startDragging(event) {
       this.isDragging = true;
 
@@ -255,6 +308,28 @@ export default {
 
       window.removeEventListener("mousemove", this.draggPointer, true);
       window.removeEventListener("mouseup", this.stopDragging, true);
+    },
+    startDraggingVolume(event) {
+      this.isDraggingVolume = true;
+
+      this.moveVolume(event);
+
+      document.querySelector("body").classList.add("select-none");
+
+      window.addEventListener("mousemove", this.dragPointerVolume, true);
+      window.addEventListener("mouseup", this.stopDraggingVolume, true);
+    },
+    dragPointerVolume(event) {
+      this.moveVolume(event, this.$refs["volume-content"]);
+    },
+    stopDraggingVolume() {
+      this.isDraggingVolume = false;
+      this.moveVolume(event, this.$refs["volume-content"]);
+
+      document.querySelector("body").classList.remove("select-none");
+
+      window.removeEventListener("mousemove", this.dragPointerVolume, true);
+      window.removeEventListener("mouseup", this.stopDraggingVolume, true);
     }
   }
 };
