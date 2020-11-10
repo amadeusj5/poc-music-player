@@ -1,29 +1,21 @@
 <template>
   <div id="app">
-    <div class="container mx-auto my-5">
+    <div class="container mx-auto">
       <!-- component -->
       <div class="w-full">
-        <div class="h-2 bg-red-light"></div>
         <div class="flex items-center justify-center h-screen bg-red-lightest">
           <div
             class="bg-white shadow-lg rounded-lg"
             style="width: 45rem !important;"
           >
             <div class="flex">
-              <div>
-                <img
-                  class="w-full rounded hidden md:block"
-                  src="https://tailwindcss.com/img/card-top.jpg"
-                  alt="Album Pic"
-                />
-              </div>
               <div class="w-full p-8">
                 <div class="flex justify-between">
                   <div>
                     <h3 class="text-2xl text-grey-darkest font-medium">
-                      A Sky Full of Stars
+                      Comptine d'un autre été, l'après-midi
                     </h3>
-                    <p class="text-sm text-grey mt-1">Ghost Stories</p>
+                    <p class="text-sm text-grey mt-1">Yann Tiersen</p>
                   </div>
                   <div class="text-red-lighter">
                     <svg
@@ -209,6 +201,8 @@ export default {
   },
   methods: {
     setMediaSession() {
+      document.title = "Comptine d'un autre été, l'après-midi";
+
       if ("mediaSession" in navigator) {
         // eslint-disable-next-line no-undef
         navigator.mediaSession.metadata = new MediaMetadata({
@@ -339,7 +333,7 @@ export default {
       const volumeWidth = element.offsetWidth;
 
       const level = (mouseXPosition - progressDOMPosition) / volumeWidth;
-      console.log(level);
+
       if (level < 0 || level > 1) {
         return;
       }
