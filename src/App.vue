@@ -165,6 +165,8 @@
 
 <script>
 import { Howl } from "howler";
+import firebase from "firebase/app";
+import "firebase/storage";
 
 export default {
   name: "App",
@@ -188,15 +190,20 @@ export default {
     }
   },
   created() {
-    this.setMediaSession();
+    const path = firebase.storage().ref("songs/yann_tiersen.mp3");
 
-    this.sound = new Howl({
-      src: ["/mp3/yann_tiersen.mp3"],
-      html5: true,
-      onplay: () => {
-        requestAnimationFrame(this.step);
-      },
-      volume: this.volume
+    path.getDownloadURL().then(url => {
+      this.sound = new Howl({
+        src: [url],
+        html5: true,
+        onplay: () => {
+          requestAnimationFrame(this.step);
+        },
+        onload: () => {
+          this.setMediaSession();
+        },
+        volume: this.volume
+      });
     });
   },
   methods: {
@@ -204,8 +211,7 @@ export default {
       document.title = "Comptine d'un autre été, l'après-midi";
 
       if ("mediaSession" in navigator) {
-        // eslint-disable-next-line no-undef
-        navigator.mediaSession.metadata = new MediaMetadata({
+        navigator.mediaSession.metadata = new window.MediaMetadata({
           title: "Comptine d'un autre été, l'après-midi",
           artist: "Yann Tiersen",
           album: "Amelie from Montmartre (Original SoundTrack)",
